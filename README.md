@@ -81,3 +81,22 @@ Now if you want to create resources through Terraform Cloud you need to create s
 
 So lets do that!
 #### 1. Create Service Account and give it resource role. There are multiple and you need to check from google documentation
+Create new Service Account under your project
+![Alt text](images/Screenshot%202026-07-24%20230915.png)
+![Alt text](images/Screenshot%202026-07-24%20230932.png)
+
+SA name should be usually for what purpose that SA is used.
+Then I added these roles for SA:
+![Alt text](images/Screenshot%202026-07-24%20231416.png)
+
+Now I'am going to explain why I used those roles for my SA
+roles/serviceusage.serviceUsageAdmin = enables GCP API's
+roles/compute.admin = Enables Compute Engine creation for my Grafana VM
+roles/container.admin = Enables GKE cluster creation
+roles/artifactregistry.admin = Enables image registry creation
+roles/cloudsql.admin = Enables Cloud SQL creation
+roles/secretmanager.admin = 
+roles/iam.serviceAccountAdmin = This grants terraform to create new SA's for authenticating between different components in my project. Like my App pod and Cloud SQL connection.
+roles/resourcemanager.projectIamAdmin
+roles/dns.admin
+roles/monitoring.admin
