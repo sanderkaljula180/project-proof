@@ -3,7 +3,7 @@ In my last job we couldn't use the cloud—for security reasons, everything had 
 
 ## ARCHITECTURE DIAGRAM
 I made this diagram using draw.io. It is nothing special, it's just for me to keep my ideas organized.
-![Alt text](images/Screenshot%202026-07-21%20172857.png)
+![Alt text](images/Screenshot%202026-07-18%20182317.png)
 
 ## STEP 1 - DOCKERIZE THE APP
 This app wasn't dockerized, so for development team and for kubernetes in cloud I had to create Dockerfile.
