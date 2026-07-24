@@ -1,0 +1,98 @@
+Concept,Syntax/Command,Why use it? When
+Deploy manifest,kubectl apply -f manifest_location,When you want to deploy object/objects
+Field validation,kubectl apply -f manifest_location --validate=strict,Validate your manifest fields before applying
+Delete object,kubectl delete -f manifest_location,Remove objects defined in a manifest
+Delete by name,kubectl delete deployment app,Remove a specific object without the manifest
+List pods,kubectl get pods,See all pods and their status
+List pods with node,kubectl get pods -o wide,See which node each pod runs on and its IP
+List all objects,kubectl get all,Quick overview of pods/services/deployments
+List services,kubectl get services,See services and their cluster/external IPs
+List deployments,kubectl get deployments,Check READY counts of deployments
+List endpoints,kubectl get endpoints service-name,Confirm a service selector is matching pods
+List nodes,kubectl get nodes,See cluster nodes and their roles
+Describe object,kubectl describe pod pod-name,Diagnose why a pod is failing (Events section)
+View logs,kubectl logs pod-name,Read a pod's stdout/stderr output
+Follow logs,kubectl logs -f pod-name,Stream logs live as they are produced
+Logs by label,kubectl logs -f -l app=app,Follow logs from all pods matching a label
+Previous logs,kubectl logs pod-name --previous,See logs from a crashed/restarted container
+Exec into pod,kubectl exec -it pod-name -- sh,Open a shell inside a running container
+Port forward,kubectl port-forward service/name 8080:8080,Reach a ClusterIP service on localhost
+Restart deployment,kubectl rollout restart deployment name,Force pods to restart after a config change
+Rollout status,kubectl rollout status deployment name,Watch a rolling update progress
+Rollout undo,kubectl rollout undo deployment name,Roll back to the previous deployment revision
+Scale replicas,kubectl scale deployment name --replicas=3,Change the number of running pods
+Current context,kubectl config current-context,See which cluster you are pointed at
+Switch context,kubectl config use-context name,Change which cluster kubectl targets
+List namespaces,kubectl get namespaces,See all namespaces in the cluster
+Set namespace,kubectl config set-context --current --namespace=name,Avoid typing -n on every command
+Apply directory,kubectl apply -f ./manifests/,Apply every manifest in a folder at once
+Dry run,kubectl apply -f file.yaml --dry-run=client,Preview what would be applied without doing it
+Explain field,kubectl explain deployment.spec,Look up what a manifest field means
+Build image,docker build -t name:tag .,Turn a Dockerfile into a named image
+Build target stage,docker build -t name:tag --target stage .,Build a specific stage of a multi-stage Dockerfile
+List images,docker images,See images stored locally
+Run container,docker run image,Start a container from an image
+Run detached,docker run -d image,Run a container in the background
+Run with port,docker run -p 5432:5432 image,Publish a container port to the host
+Run with env,docker run -e KEY=value image,Pass an environment variable into a container
+Run named,docker run --name mydb image,Give a container a memorable name
+List running,docker ps,See currently running containers
+List all containers,docker ps -a,See all containers including stopped ones
+Stop container,docker stop container,Gracefully stop a running container
+Remove container,docker rm container,Delete a stopped container
+Remove image,docker rmi image,Delete an image from local storage
+Exec into container,docker exec -it container sh,Open a shell inside a running container
+View container logs,docker logs container,Read a container's output
+Follow container logs,docker logs -f container,Stream a container's output live
+Tag image,docker tag image registry/repo:tag,Prepare an image to push to a registry
+Push image,docker push registry/repo:tag,Upload an image to a registry
+Pull image,docker pull image,Download an image from a registry
+Prune system,docker system prune,Reclaim space from unused images/containers
+Inspect,docker inspect container,See full config/metadata of a container
+Copy files,docker cp container:/path ./local,Copy files out of or into a container
+Compose start,docker compose up,Start all services defined in compose file
+Compose start detached,docker compose up -d,Start all services in the background
+Compose build and start,docker compose up --build,Rebuild images before starting
+Compose stop,docker compose down,Stop and remove all services
+Compose stop and clear volumes,docker compose down -v,Also remove named volumes (wipes data)
+Compose list,docker compose ps,See status of compose-managed containers
+Compose logs,docker compose logs -f,Stream logs from all services
+Compose run one service,docker compose up service-name,Start only a specific service
+Compose restart,docker compose restart,Restart all running services
+Compose exec,docker compose exec service sh,Open a shell in a compose service
+Select all,SELECT * FROM table,Read every row and column from a table
+Select columns,"SELECT col1, col2 FROM table",Read only specific columns
+Filter rows,SELECT * FROM table WHERE col = value,Return only rows matching a condition
+Sort results,SELECT * FROM table ORDER BY col DESC,Order the result set by a column
+Limit rows,SELECT * FROM table LIMIT 10,Return only the first N rows
+Count rows,SELECT COUNT(*) FROM table,Count how many rows match
+Insert row,"INSERT INTO table (col1, col2) VALUES (v1, v2)",Add a new row to a table
+Update rows,UPDATE table SET col = value WHERE id = 1,Change existing rows (always use WHERE)
+Delete rows,DELETE FROM table WHERE id = 1,Remove rows (always use WHERE)
+Join tables,SELECT * FROM a JOIN b ON a.id = b.a_id,Combine rows from two related tables
+Group by,"SELECT col, COUNT(*) FROM table GROUP BY col",Aggregate rows into groups
+Distinct values,SELECT DISTINCT col FROM table,Return only unique values of a column
+Create table,"CREATE TABLE t (id INT, name TEXT)",Define a new table structure
+Alter table,ALTER TABLE t ADD COLUMN col TEXT,Add or change columns on an existing table
+Drop table,DROP TABLE t,Delete a table and all its data
+Change password,ALTER USER name WITH PASSWORD 'newpass',Reset a database user's password
+List databases (psql),\l,See all databases in Postgres
+Connect database (psql),\c dbname,Switch to another database in psql
+List tables (psql),\dt,See all tables in the current database
+Describe table (psql),\d tablename,See a table's columns and types
+Connection info (psql),\conninfo,See host/db/user you are connected as
+Initialize,terraform init,Download providers and set up the working dir
+Format,terraform fmt,Auto-format your .tf files
+Validate,terraform validate,Check config for syntax/consistency errors
+Plan,terraform plan,Preview what changes will be made
+Apply,terraform apply,Create/update infrastructure to match config
+Apply auto-approve,terraform apply -auto-approve,Apply without the interactive confirmation
+Destroy,terraform destroy,Tear down all managed infrastructure
+Show state,terraform show,Inspect the current tracked state
+List state,terraform state list,List resources tracked in state
+Output values,terraform output,Print declared output values
+Target resource,terraform apply -target=resource,Apply changes to a single resource only
+Refresh,terraform refresh,Sync state with real infrastructure
+Workspace list,terraform workspace list,See available workspaces (environments)
+Workspace select,terraform workspace select name,Switch to another workspace
+Official argocd manifest,kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml, Official argocd manifest

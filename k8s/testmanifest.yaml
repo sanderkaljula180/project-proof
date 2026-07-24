@@ -1,0 +1,120 @@
+# The Service API, part of Kubernetes, is an abstraction to help you expose groups of Pods over a network.
+# For example nginx-deployment
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-service
+spec:
+  # Selector accesses to pods, You add metadata.labels.name to Deployment object
+  selector:
+    app: prometheus
+  ports:
+  - name: prometheus-port
+    protocol: TCP
+    # This port is exposed
+    port: 9090
+    # This is targeted pods port through ports.name
+    targetPort: http-prometheus
+
+---
+
+# Kubernetes API version
+apiVersion: apps/v1
+# What kind of object you want to create
+kind: Deployment
+# Data that helps uniquely identify the object, including a name string. UID and optional namespace
+metadata:
+  name: prometheus-deployment
+  labels:
+    app.kubernetes.io/name: prometheus
+# What state you desire for the object
+spec:
+  selector:
+    matchLabels:
+      app: prometheus
+  replicas: 1 # tells deployment to run 2 pods matching the template
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+      - name: prometheus
+        image: prom/prometheus
+        ports:
+        - containerPort: 9090
+          name: http-prometheus
+        # This creates a volume mount with name and path
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/prometheus
+      # This defines the volume from ConfigMap
+      volumes:
+      - name: config-volume
+        configMap:
+          name: prometheus-config
+
+---
+
+# This is ConfigMap. This holds your configuration data like settings, config files or env values.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+# This is required field in ConfigMap. Each key becomes a filename when this ConfigMap is mounted
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+
+    scrape_configs:
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:9090']
+      - job_name: realworld-java21
+        metrics_path: '/actuator/prometheus'
+        static_configs:
+          - targets: ['app-service:8080']
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana-deployment
+  labels:
+    app: grafana
+spec:
+  selector:
+    matchLabels:
+      app: grafana
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+      - name: grafana
+        image: grafana/grafana
+        ports:
+        - containerPort: 3000
+          name: http-grafana
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana-service
+spec:
+  # Selector accesses to pods, You add metadata.labels.name to Deployment object
+  selector:
+    app: grafana
+  ports:
+  - name: grafana-port
+    protocol: TCP
+    # This port is exposed
+    port: 3000
+    # This is targeted pods port through ports.name
+    targetPort: http-grafana

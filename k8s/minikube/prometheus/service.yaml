@@ -1,0 +1,17 @@
+# The Service API, part of Kubernetes, is an abstraction to help you expose groups of Pods over a network.
+# For example nginx-deployment
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-service
+spec:
+  # Selector accesses to pods, You add metadata.labels.name to Deployment object
+  selector:
+    app: prometheus
+  ports:
+  - name: prometheus-port
+    protocol: TCP
+    # This port is exposed
+    port: 9090
+    # This is targeted pods port through ports.name
+    targetPort: http-prometheus

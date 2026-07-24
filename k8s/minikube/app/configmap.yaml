@@ -1,0 +1,9 @@
+# ConfigMap for database connection
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  DB_HOST: "host.minikube.internal"
+  DB_PORT: "5432"
+  DB_NAME: "postgres"

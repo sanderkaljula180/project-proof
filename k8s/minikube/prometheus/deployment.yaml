@@ -1,0 +1,35 @@
+# Kubernetes API version
+apiVersion: apps/v1
+# What kind of object you want to create
+kind: Deployment
+# Data that helps uniquely identify the object, including a name string. UID and optional namespace
+metadata:
+  name: prometheus-deployment
+  labels:
+    app.kubernetes.io/name: prometheus
+# What state you desire for the object
+spec:
+  selector:
+    matchLabels:
+      app: prometheus
+  replicas: 1 # tells deployment to run 2 pods matching the template
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+      - name: prometheus
+        image: prom/prometheus
+        ports:
+        - containerPort: 9090
+          name: http-prometheus
+        # This creates a volume mount with name and path
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/prometheus
+      # This defines the volume from ConfigMap
+      volumes:
+      - name: config-volume
+        configMap:
+          name: prometheus-config

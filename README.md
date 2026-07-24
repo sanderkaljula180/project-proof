@@ -1,0 +1,71 @@
+# THIS PROJECT IS FOR MYSELF AND FOR PROOF THAT I CAN DO STUFF
+In my last job we couldn't use the cloud—for security reasons, everything had to be on-prem. This project is my way of learning Kubernetes, Terraform, and gcloud, and I'll document every step here. The app I'm building the platform around is a simple Spring CRUD application.
+
+## ARCHITECTURE DIAGRAM
+I made this diagram using draw.io. It is nothing special, it's just for me to keep my ideas organized.
+![Alt text](images\Screenshot 2026-07-18 182317.png)
+
+## STEP 1 - DOCKERIZE THE APP
+This app wasn't dockerized, so for development team and for kubernetes in cloud I had to create Dockerfile.
+At last job we mostly worked with Maven but this one was done using Gradle, so this was a new experience for me. When creating Dockerfile I used three pillars for it:
+🔒 Security
+⚡ Speed
+👁️ Clarity
+
+Also I wrote down a principle guide using those three pillars given by Youtuber named 'DevOps Directive'.
+
+- 🔒 ⚡ 👁️ Pin specific versions
+  - 🔒 ⚡ 👁️ Base images (either major+minor OR SHA256 hash)
+    - 🔒 👁️ System Dependencies
+    - 🔒 👁️ Application Dependencies
+- 🔒 ⚡ Use small + secure base images
+- ⚡ 👁️ Protect the layer cache
+  - ⚡ Order commands by frequency of change
+  - ⚡ COPY dependency requirements file → install deps → copy remaining source code
+  - ⚡ Use cache mounts
+  - ⚡ Use COPY --link
+  - ⚡ 👁️ Combine steps that are always linked (use heredocs to improve tidiness)
+- 🔒 👁️ Be explicit
+  - 👁️ Set working directory with WORKDIR
+  - 👁️ Indicate standard port with EXPOSE
+  - 🔒 👁️ Set default environment variables with ENV
+- 🔒 ⚡ 👁️ Avoid unnecessary files
+  - 🔒 ⚡ 👁️ Use .dockerignore
+  - 🔒 ⚡ 👁️ COPY specific files
+  - 🔒 Use non-root USER
+- 🔒 ⚡ 👁️ Install only production dependencies
+  - 🔒 Avoid leaking sensitive information
+  - 🔒 ⚡ Leverage multi-stage builds
+
+I think this guide is great for creating secure and fast Dockerfile for my app. Also I added comments for every line I created in Dockerfile, so I won't describe here what I did, just check the Dockerfile in app\realworld-java21-springboot3
+
+## STEP 2 - DOCKER-COMPOSE FOR LOCAL DEVELOPMENT
+So for development I added docker-compose with PostgreSQL added on it. Originally this app used an H2 in-memory database but for persistence I added PostgreSQL.
+So now when you use `docker compose up` it will boot up Postgres and Spring app containers.
+Also added comments for every line in docker-compose.yml.
+
+## STEP 3 TERRAFORM CLOUD SETUP
+### 3.1 Install Terraform CLI and gcloud authenticate
+NB! Since I'm doing this on my home PC running Windows 11, I set up a WSL session to work in.
+So first we need to install Terraform CLI on linux. I just used this official Terraform guide for it
+https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli
+
+Also now we need to authenticate ourselves into gcloud through terminal. I used this command `gcloud auth login --no-launch-browser`. Why use --no-launch-browser?
+Because we are in WSL, it might not open your browser for authentication, which happened to me. So when you use this flag, it will just give you the URL and you can go from there.
+
+### 3.2 Create GCP project
+Go to google cloud console in browser and just create a new project
+![Alt text](images\Screenshot 2026-07-21 172857.png)
+
+Billing right now is free tier. I have couple of days left
+
+### 3.3 Create Terraform Cloud workspace and connect the Terraform Cloud workspace to your git repo
+Now for this I can use CLI-driven or VCS-driven. I am going to choose VCS because I'm going to use github as trigger. Basically I push to the repo, terraform cloud sees the change and will automatically run the plan, I will check it from UI and apply it.
+Also you can choose between OAuth or Github App options. One is OAuth and other is were you install TC app into your github account, this way you can tell TC to only watch one repository.
+I will choose Github App. Next I am going to give you steps how to create workspace and connect it to your git repo.
+- Go to app.terraform.io
+- Create new workspace
+- Now it lets you choose between three options. Take 'Version Control Workflow'
+- 'Connect to a version control provider'. Choose from there your version control provider. I will choose 'GitHub.com', after that you will get Authentication window pop-up. Press Authorize button.
+
+### 3.4 Give Terraform Cloud access to GCP with Workload Identity Federation
