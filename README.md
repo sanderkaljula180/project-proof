@@ -3,7 +3,7 @@ In my last job we couldn't use the cloud—for security reasons, everything had 
 
 ## ARCHITECTURE DIAGRAM
 I made this diagram using draw.io. It is nothing special, it's just for me to keep my ideas organized.
-![Alt text](images\Screenshot 2026-07-18 182317.png)
+![Alt text](images/Screenshot%202026-07-21%20172857.png)
 
 ## STEP 1 - DOCKERIZE THE APP
 This app wasn't dockerized, so for development team and for kubernetes in cloud I had to create Dockerfile.
@@ -55,7 +55,7 @@ Because we are in WSL, it might not open your browser for authentication, which 
 
 ### 3.2 Create GCP project
 Go to google cloud console in browser and just create a new project
-![Alt text](images\Screenshot 2026-07-21 172857.png)
+![Alt text](images/Screenshot%202026-07-21%20172857.png)
 
 Billing right now is free tier. I have couple of days left
 
@@ -67,5 +67,17 @@ I will choose Github App. Next I am going to give you steps how to create worksp
 - Create new workspace
 - Now it lets you choose between three options. Take 'Version Control Workflow'
 - 'Connect to a version control provider'. Choose from there your version control provider. I will choose 'GitHub.com', after that you will get Authentication window pop-up. Press Authorize button.
+- Now you can choose 'Only select repositories' option and select your repository which one you want it to be installed on.
+- Then you need to choose on TC also which repository you want that workspace to be on
+- So we have done our current task, created new workspace and connected the TC workspace with github repo. We will change some settings after we have created our terraform files. But right now we will run plans manually from UI.
 
-### 3.4 Give Terraform Cloud access to GCP with Workload Identity Federation
+### 3.4 Give Terraform Cloud access to GCP with Dynamic Provider Credentials/Workload Identity Federation
+Now if you want to create resources through Terraform Cloud you need to create secure connection between TC and GCP. Basically you have to create Workload Identity Federation pool with a provider which is TC. GCP Workload Identity pool is authentication for exterior systems. First time I learned Terraform, I put down some notes on paper, these are the notes:
+- Steps for connecting TC and GCP
+    1. Create Service Account and give it resource role. There are multiple and you need to check from google documentation
+    2. Create Workload Identity Federation pool and add TC into OIDC providers
+    3. In IAM, grant the roles/iam.workloadIdentityUser role to the principal on your service account
+    4. Add 3 variable to TC, which are TFC_GCP_PROVIDER AUTH, TFC_GCP_WORKLOAD_PROVIDER_NAME, TFC_GCP_RUN_SERVICE_ACCOUNT_EMAIL
+
+So lets do that!
+#### 1. Create Service Account and give it resource role. There are multiple and you need to check from google documentation
