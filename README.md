@@ -1,4 +1,4 @@
-# THIS PROJECT IS FOR MYSELF AND FOR PROOF THAT I CAN DO STUFF
+# THIS PROJECT DOCUMENTATION IS FOR FUTURE ME
 In my last job we couldn't use the cloud—for security reasons, everything had to be on-prem. This project is my way of learning Kubernetes, Terraform, and gcloud, and I'll document every step here. The app I'm building the platform around is a simple Spring CRUD application.
 
 ## ARCHITECTURE DIAGRAM
@@ -77,7 +77,7 @@ Now if you want to create resources through Terraform Cloud you need to create s
     1. Create Service Account and give it resource role. There are multiple and you need to check from google documentation
     2. Create Workload Identity Federation pool and add TC into OIDC providers
     3. In IAM, grant the roles/iam.workloadIdentityUser role to the principal on your service account
-    4. Add 3 variable to TC, which are TFC_GCP_PROVIDER AUTH, TFC_GCP_WORKLOAD_PROVIDER_NAME, TFC_GCP_RUN_SERVICE_ACCOUNT_EMAIL
+    4. Add 3 variable to TC, which are TFC_GCP_PROVIDER_AUTH, TFC_GCP_WORKLOAD_PROVIDER_NAME, TFC_GCP_RUN_SERVICE_ACCOUNT_EMAIL
 
 So lets do that!
 #### 1. Create Service Account and give it resource role. There are multiple and you need to check from google documentation
@@ -90,13 +90,66 @@ Then I added these roles for SA:
 ![Alt text](images/Screenshot%202026-07-24%20231416.png)
 
 Now I'am going to explain why I used those roles for my SA
-roles/serviceusage.serviceUsageAdmin = enables GCP API's
-roles/compute.admin = Enables Compute Engine creation for my Grafana VM
-roles/container.admin = Enables GKE cluster creation
-roles/artifactregistry.admin = Enables image registry creation
-roles/cloudsql.admin = Enables Cloud SQL creation
-roles/secretmanager.admin = 
-roles/iam.serviceAccountAdmin = This grants terraform to create new SA's for authenticating between different components in my project. Like my App pod and Cloud SQL connection.
-roles/resourcemanager.projectIamAdmin
-roles/dns.admin
-roles/monitoring.admin
+- roles/serviceusage.serviceUsageAdmin = enables GCP API's
+- roles/compute.admin = Enables Compute Engine creation for my Grafana VM
+- roles/container.admin = Enables GKE cluster creation
+- roles/artifactregistry.admin = Enables image registry creation
+- roles/cloudsql.admin = Enables Cloud SQL creation
+- roles/secretmanager.admin = Enables secret manager creation
+- roles/iam.serviceAccountAdmin = This grants terraform to create new SA's for authenticating between different components in my project. Like my App pod and Cloud SQL connection.
+- roles/resourcemanager.projectIamAdmin = This one grants roles to those SA's
+- roles/dns.admin = for dns
+- roles/monitoring.admin = can create uptime checks and alerts
+
+#### 2. Create Workload Identity Federation pool and add TC into OIDC providers
+So this is where you can create that pool
+![Alt text](images/Screenshot%202026-07-26%20213408.png)
+
+Lets add provider, which is OIDC. 
+Then provider details which is a name that you understand. 
+For Issuer URL you add terraform cloud URL which is https://app.terraform.io or if you have on-prem/self-hosted, you will add that one.
+For audience you use 'Default audience'. I haven't looked up when do use custom audience, I guess it is when you self-host or like for some specific requirement?
+![Alt text](images/Screenshot%202026-07-26%20214058.png)
+
+Now I need to configure provider attributes. Like I understand, it is basically a variable that google uses to decide whether to accept provider or not.
+Oh it is basically just a HashMap, like in java. It suggest me do use assertion.sub so I will use that. I think I am getting too deep in this right now.
+
+I got a error after pressing save, which is actually great it happened right now.
+![Alt text](images/Screenshot%202026-07-26%20215923.png)
+
+Well it suggest me 'attribute.sub' but I found out that it is not enough. Okay I guess the first box is for setting the mapping and other one is for checking the terraform cloud organization name. So add this '.startsWith' and your organization name in terraform cloud
+![Alt text](images/Screenshot%202026-07-26%20220740.png)
+
+#### 3. In IAM, grant the roles/iam.workloadIdentityUser role to the principal on your service account
+Now we need to 'Add principal' for that same pool. Basically pool makes the authentication but this terraform identity in this pool has no power yet, so we gonna give it some power. This 'roles/iam.workloadIdentityUser' allowes that identity in that pool to impersonate as SA. You press 'Grant access'.
+![Alt text](images/Screenshot%202026-07-26%20221746.png)
+
+Now we need to add New principals, you can add that in different formats but we are going to use 'principalSet://iam.googleapis.com/projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL_ID/*'. I got that from [hashi corp documentation](https://developer.hashicorp.com/terraform/cloud-docs/registry/test/dynamic-credentials/gcp), under the 'Grant Workload Identity Pool access to the service account' section.
+
+PROJECT_NUMBER you can get from here
+![Alt text](images/Screenshot%202026-07-26%20224451.png)
+
+POOL_ID from here
+![Alt text](images/Screenshot%202026-07-26%20224520.png)
+
+So we add that principal and a role, click Save and there we have it.
+![Alt text](images/Screenshot%202026-07-26%20224737.png)
+
+#### 4. Add 3 variable to TC, which are TFC_GCP_PROVIDER_AUTH, TFC_GCP_WORKLOAD_PROVIDER_NAME, TFC_GCP_RUN_SERVICE_ACCOUNT_EMAIL
+Now we need to create variables in Terraform Cloud. You can do it by going to your Workspace > Variables and adding them into Environment variables. Press '+ Add variable' button under 'Workspace variables'.
+![Alt text](images/Screenshot%202026-07-26%20230242.png)
+
+- TFC_GCP_PROVIDER_AUTH = set this one true, it's boolean
+- TFC_GCP_WORKLOAD_PROVIDER_NAME = full name of Workload Identity provider. 'projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL_ID/providers/PROVIDER_ID'
+    - PROJECT_NUMBER, POOL_ID = same from the principalSet
+    - PROVIDER_ID = provider name from the pool you created
+- TFC_GCP_RUN_SERVICE_ACCOUNT_EMAIL = Terraform service account email. Find your terraform cloud SA from GCP IAM and paste it there
+
+No need to tick the sensitive box because there is nothing to protect. That is the beauty of Workload Identity Federation pool. 
+!!!!!FYI On the images I am going to upload, there is one variable with sensitive box ticked, it was accidental.
+![Alt text](images/Screenshot%202026-07-26%20231621.png)
+
+So there is no way do test if it works, fast, atleast I haven't found one. We need to move onto the next step.
+
+## STEP 4 IaC through Terraform Cloud
+### 4.1 Lets enable required GCP API's
