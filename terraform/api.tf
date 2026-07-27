@@ -9,8 +9,8 @@ resource "google_project_service" "apis" {
     "dns.googleapis.com",
     "monitoring.googleapis.com",
   ])
-  project            = var.project_id
-  service            = each.value
+  project = var.project_id
+  service = each.value
   # I will probably destroy my infrastructure multiple times but I want those API's enabled after destroy
   disable_on_destroy = false
 }
