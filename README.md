@@ -152,4 +152,50 @@ No need to tick the sensitive box because there is nothing to protect. That is t
 So there is no way do test if it works, fast, atleast I haven't found one. We need to move onto the next step.
 
 ## STEP 4 IaC through Terraform Cloud
+
+First I am going to create my terraform file hierarchy. It's going to be simple, in the root there will be:
+- main.tf = This one adds the provider, calls modules and passes the variables
+- variables.tf = This one declares variables
+- terraform.tfvars = This one gives variables values
+- api.tf = This is for enabling GCP API's
+
+I won't separate them by environments because I don't have different stagings because I don't need one, this won't go live.
+Inside modules folder there will be folders for each resource and inside each module folder there are three files:
+- main.tf
+- variables.tf = Module variable file is for module own variables
+- outputs.tf = This is for when I need module outputs for the root
+
+Simple. We'll see how can I use them now. I will go step by step
+
+Also I'am going to use terraform own GCP [documentation](https://registry.terraform.io/providers/hashicorp/google/latest/docs)
+Also I will comment everything in terraform files, like what is the purpose of that block and functions.
+
 ### 4.1 Lets enable required GCP API's
+If I remember correctly I need to add google as provider in root main.tf, then I can start enabling API's in api.tf.
+
+First we add required_providers and provider configuration inside root main.tf. Also I am using variables already for provider configuration, so I'm going to explain how variables work here. It is simple, you declare variables in variables.tf, then you give those variables a value in terraform.tfvars and then you can use them inside main.tf.
+Again, I commented what those blocks do in files, so check the files.
+Setting up terraform provider, I just used terraform GCP documentation in [here](https://registry.terraform.io/providers/hashicorp/google/latest)
+![Alt text](images/Screenshot%202026-07-27%20220711.png)
+
+Now, lets create the first resource block which is for enabling API's. First I will talk about the syntax. 
+
+```hcl
+resource "THIS_IS_RESOURCE_TYPE_FROM_PROVIDER" "this_is_your_label" {
+  # for_each tells terraform to create one copy of this resource per item in this set.
+  # for_each requires a set or map, so toset() converts the list into a set.
+  # you also need to declare it inside service argument down below
+  for_each = toset([
+    "item1",
+    "item2",
+    "item3",
+  ])
+  
+  # declared for_each set
+  service = each.value
+
+  # other arguments
+}
+```
+
+Now this is out of the way. Let's enable some API's inside api.tf.
