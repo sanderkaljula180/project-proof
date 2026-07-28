@@ -158,6 +158,7 @@ First I am going to create my terraform file hierarchy. It's going to be simple,
 - variables.tf = This one declares variables
 - terraform.tfvars = This one gives variables values
 - api.tf = This is for enabling GCP API's
+- network.tf = For networking, VPC
 
 I won't separate them by environments because I don't have different stagings because I don't need one, this won't go live.
 Inside modules folder there will be folders for each resource and inside each module folder there are three files:
@@ -199,3 +200,21 @@ resource "THIS_IS_RESOURCE_TYPE_FROM_PROVIDER" "this_is_your_label" {
 ```
 
 Now this is out of the way. Let's enable some API's inside api.tf.
+If you have created 'google_project_service' resource block and setup Terraform cloud VCS, dynamic credentials and installed terraform CLI, then you can do these things:
+- Auto format terraform files before pushing to github using this command 'terraform fmt'
+- Commiting and pushing your project into github repository, which is scanned by your Terraform Cloud workspace and it will run the plan.
+- Then you can review your plan in Terraform Cloud and if everything is like you want, you can click 'Confirm & Apply'. Also add a little comment that explains that action
+
+Let's see if it works.
+Terraform Cloud
+![Alt text](images/Screenshot%202026-07-28%20165817.png)
+
+
+### 4.2 Create the VPC / private network.
+
+So I have to create VPC and a subnet inside that VPC. 
+Google managed services that will be in my VPC are Artifact Registry, Cloud SQL, Secret Manager and subnet which has GKE inside.
+
+Let's apply
+Terraform Cloud
+![Alt text](images/Screenshot%202026-07-28%20165817.png)
