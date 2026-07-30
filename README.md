@@ -210,11 +210,35 @@ Terraform Cloud
 ![Alt text](images/Screenshot%202026-07-28%20165817.png)
 
 
-### 4.2 Create the VPC / private network.
+### 4.2 Create the networking infrastructure for my project
 
-So I have to create VPC and a subnet inside that VPC. 
-Google managed services that will be in my VPC are Artifact Registry, Cloud SQL, Secret Manager and subnet which has GKE inside.
+So I have to create network for my project. This includes:
+- VPC
+- Subnet inside VPC
+- Create two secondary ranges in subnet for kubernetes pods and services
+- Create reserved range for private service access between Cloud SQL and my VPC
+- Create the private service access(bridge)
+- Create Router + NAT for outbound traffic
 
-Let's apply
+Created network.tf for this. Added necessary comments.
+
+Documentation I used for these:
+https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_subnetwork
+https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_global_address
+https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/service_networking_connection
+https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_router_nat
+https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_router
+
+Will have to add firewall rules later. Load balancer is created by GKE.
+
+I can't test all of this without my resources actually using it, so I have to create my stuff before I can do that. What I can do is to apply and see if they are actually created through Terraform Cloud and see with GCP console if they are in the list. Also I think I can check if the bridge is established.
+
 Terraform Cloud
 ![Alt text](images/Screenshot%202026-07-28%20165817.png)
+
+GCP console
+![Alt text](images/Screenshot%202026-07-28%20165817.png)
+
+Bridge
+![Alt text](images/Screenshot%202026-07-28%20165817.png)
+
