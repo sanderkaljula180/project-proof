@@ -19,11 +19,11 @@ resource "google_compute_subnetwork" "subnet" {
   # These two create me two secondary ip ranges for my k8s pods and services. Later I am going to configure GKE to use them
   secondary_ip_range {
     range_name = "gke-pods-secondary-range"
-    ip_cidr_range = "10.0.4.0/16"
+    ip_cidr_range = "10.4.0.0/16"
   }
   secondary_ip_range {
     range_name = "gke-services-secondary-range"
-    ip_cidr_range = "10.0.8.0/20"
+    ip_cidr_range = "10.8.0.0/20"
   }
 }
 
