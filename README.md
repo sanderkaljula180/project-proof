@@ -100,6 +100,7 @@ Now I'am going to explain why I used those roles for my SA
 - roles/resourcemanager.projectIamAdmin = This one grants roles to those SA's
 - roles/dns.admin = for dns
 - roles/monitoring.admin = can create uptime checks and alerts
+- roles/servicenetworking.networksAdmin = Private Service Access for Security Manager and Artifact Registry
 
 #### 2. Create Workload Identity Federation pool and add TC into OIDC providers
 So this is where you can create that pool
@@ -233,12 +234,19 @@ Will have to add firewall rules later. Load balancer is created by GKE.
 
 I can't test all of this without my resources actually using it, so I have to create my stuff before I can do that. What I can do is to apply and see if they are actually created through Terraform Cloud and see with GCP console if they are in the list. Also I think I can check if the bridge is established.
 
-Terraform Cloud
-![Alt text](images/Screenshot%202026-07-28%20165817.png)
+Interesting thing happened. I forgot to enable google_service_networking_connection as API, so I just added that API and then tried to create google_service_networking_connection as resource but it failed. It seems sometimes correct order is important from GCP side. SO ENABLE API's FIRST AND THEN CREATE RESOURCES.
+Got two errors from this plan, one was servicenetworking API was missing and also Service Usage Admin role was missing.
+
+```
+gcloud compute networks list | grep main-vpc
+gcloud compute networks subnets list | grep main-subnet
+gcloud compute networks subnets describe main-subnet --region=europe-north1 --format="value(secondaryIpRanges)"
+gcloud compute routers list | grep gke-router
+gcloud services vpc-peerings list --network=main-vpc
+```
 
 GCP console
-![Alt text](images/Screenshot%202026-07-28%20165817.png)
+![Alt text](images/Screenshot%202026-07-30%20154341.png)
 
-Bridge
-![Alt text](images/Screenshot%202026-07-28%20165817.png)
+
 
