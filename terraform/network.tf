@@ -1,9 +1,17 @@
 # Creates VPC for my Artifact Registry, Cloud SQL, Secret Manager and subnet
 resource "google_compute_network" "vpc" {
   name                    = "main-vpc"
+  # It is REGIONAL by default but for clarity I will still add it.
+  # https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_network#routing_mode-1
+  routing_mode = "REGIONAL"
   # If this is true then GCP creates automatically subnets wihtout asking. Next block shows that I create my own subnet, so it should stay false
   auto_create_subnetworks = false
   project                 = var.project_id
+
+    # Why should I even create a network if my API's are not enabled
+    depends_on = [ 
+        google_project_service.apis
+   ]
 }
 
 # Creates subnet in my VPC
@@ -62,9 +70,9 @@ resource "google_compute_router_nat" "nat" {
   name                               = "gke-router-nat"
   router                             = google_compute_router.router.name
   region                             = google_compute_router.router.region
-  # Going to keep auto option because I only use this for argocd -> github connection and there is no whitelist
+  # Going to keep auto option because I only use this for argocd -> github connection and there is no whitelist, I guess? In the future if there is I'll just change it
   nat_ip_allocate_option             = "AUTO_ONLY"
-  # Keep all ip ranges because argo will be in a pod and pods use secondary range
+  # Keep all ip ranges because argo will be in a pod and pods use secondary range. For clarity this means, use all IP RANGES IN YOUR REGIONS PRIVATE NETWORK SUBNET
   source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
 
     # Just in case if argo cant connect to github
@@ -72,5 +80,18 @@ resource "google_compute_router_nat" "nat" {
     enable = true
     filter = "ERRORS_ONLY"
   }
+}
+
+# Create firewall
+resource "google_compute_firewall" "allow-ssh" {
+    name = "allow-ssh"
+    network = google_compute_network.vpc.name
+
+    allow {
+      protocol = "tcp"
+      ports    = ["22"]
+    }
+
+    source_ranges = ["0.0.0.0/0"]
 }
 

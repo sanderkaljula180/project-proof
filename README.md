@@ -1,6 +1,31 @@
 # THIS PROJECT DOCUMENTATION IS FOR FUTURE ME
 In my last job we couldn't use the cloud—for security reasons, everything had to be on-prem. This project is my way of learning Kubernetes, Terraform, and gcloud, and I'll document every step here. The app I'm building the platform around is a simple Spring CRUD application.
 
+# TODO
+- Define GKE cluster with Workload Identity - DONE
+- Define Artifact Registry repository
+- Define Cloud SQL with Private IP
+- Define Secret Manager secret container
+- Define Cloud DNS + static IPs
+- Define Compute Engine VM for Grafana
+- Define Cloud Monitoring uptime checks + alerts
+- Put the actual DB credentials into Secret Manager separately
+- Push app image to Artifact Registry
+- Point kubectl at the new GKE cluster
+- Install External Secrets Operator (or CSI driver), wired to Secret Manager via Workload Identity
+- Apply app manifests with kubectl
+- Add Ingress (Load balancer, kubernetes object). When I add Ingress then GKE will see it and automatically provisions Load Balancer
+- Wire Cloud DNS and add TLS. For TLS I'll use google own google managed certificate.
+- Deploy Prometheus into GKE, kept internal
+- Configure Grafana on its VM to query Prometheus privately
+- Cloud Monitoring for notifications
+- Push all Kubernetes manifests to a Git repo
+- Install ArgoCD in the cluster.
+- Create ArgoCD Application objects with auto-sync and self-heal.
+- Stop using kubectl apply — changes go through Git.
+- Add workflow: on push → test → build image → push to Artifact Registry → bump image tag in manifests repo.
+- ArgoCD detects the change and deploys.
+
 ## ARCHITECTURE DIAGRAM
 I made this diagram using draw.io. It is nothing special, it's just for me to keep my ideas organized.
 ![Alt text](images/Screenshot%202026-07-18%20182317.png)
@@ -224,6 +249,7 @@ So I have to create network for my project. This includes:
 Created network.tf for this. Added necessary comments.
 
 Documentation I used for these:
+
 https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_subnetwork
 https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_global_address
 https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/service_networking_connection
@@ -249,4 +275,25 @@ GCP console
 ![Alt text](images/Screenshot%202026-07-30%20154341.png)
 
 
+### 4.3 Define GKE cluster with Workload Identity
 
+To be honest, those documentations and explanations are lacking so hard...I'm still not sure what to do. I found youtube guide for this, going to watch this instead.
+https://www.youtube.com/watch?v=X_IK0GBbBTw
+
+
+This my to do: ALL DONE EXCEPT K8S SERVICEACCOUNT (step 10). I will add it later
+1. Router + NAT - ALREADY DONE
+2. Firewall - DONE
+3. ```google_container_cluster``` resource with ```workload_identity_config``` enabled
+4. Create SA ```gke-nodes-sa``` for nodes with roles. ```roles/artifactregistry.reader```, ```roles/logging.logWriter```, ```roles/monitoring.metricWriter```
+5. GKE node pools. Don't forget ```workload_metadata_config { mode = "GKE_METADATA" }```
+6. Attach ```gke-nodes-sa``` to the pool
+8. Create SA ```app``` for app/pods with roles. ```roles/cloudsql.client```, ```roles/secretmanager.secretAccessor```
+9. Bind ```app``` SA to app using ```google_service_account_iam_member``` resource with role ```roles/iam.workloadIdentityUser```
+10. Create ```kind: ServiceAccount``` with annotation pointing at SA's email
+
+He added more arguments to other resources and used different argument values for like subnet and main vpc. Basically different configuration than mine, I have to check why and if I should use it.
+That youtube guide told that be careful when enabling services in ```google_container_cluster``` resource. For example, logging_service because that will RAISE your costs, he brought up that one time he's logging cost more than he's infrastructure because one of the developers left DEBUG on. SO MONITOR YOUR COSTS!
+Also I will enable logging and monitoring because Google Cloud Monitoring is for GKE and Prometheus/Grafana is for my app health and monitoring.
+
+So I did everything correct, I hope. Now if I push and apply it should create me working cluster without ofcourse my applications inside it.

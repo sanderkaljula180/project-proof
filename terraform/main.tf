@@ -19,3 +19,9 @@ provider "google" {
   project = var.project_id
   region  = var.region
 }
+
+module "gke" {
+    source = "./modules/gke"
+    cluster_location = var.cluster_location
+    second_cluster_location = var.second_cluster_location
+}
