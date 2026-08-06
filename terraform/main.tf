@@ -24,4 +24,5 @@ module "gke" {
     source = "./modules/gke"
     cluster_location = var.cluster_location
     second_cluster_location = var.second_cluster_location
+    project_id = var.project_id
 }
